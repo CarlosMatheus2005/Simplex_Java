@@ -4,9 +4,11 @@ public class Simplex {
     public static void main(String[] args) throws Exception {
         Scanner sc = new Scanner(System.in);
 
+        //Variáveis para -> x1, x2, ..., xn
         System.out.print("Informe o Número de Variáveis: ");
         int n = sc.nextInt();
         
+        //Quantidade de Restricoes <=
         System.out.print("Informe o Número de Restrições: ");
         int m = sc.nextInt();
         System.out.println();
@@ -22,13 +24,7 @@ public class Simplex {
 
         //Variaveis de Folga 
         double[][] f = new double[m][m];
-        //Preenchendo tudo com zero
-        for(int i = 0; i < m; i++){
-            for(int j = 0; j < m; j++){
-                f[i][j] = 0;
-            }
-        }
-        
+                
         //Variaveis de Folga que depois virarao as variaveis normais 
         String[] var = new String[m];
 
@@ -68,32 +64,32 @@ public class Simplex {
         System.out.println();
 
         //Montando o Tableu {
-        //Preenchendo restrições
-        for(int i = 0; i < m; i++){
-            //Coeficientes das variáveis normais
+            //Preenchendo a tabela com as restrições
+            for(int i = 0; i < m; i++){
+                //Coeficientes das variáveis normais
+                for(int j = 0; j < n; j++){
+                    tableau[i][j] = a[i][j];
+                }
+                //Variáveis de folga
+                    for(int j = 0; j < m; j++){
+                    tableau[i][n + j] = f[i][j];
+                }
+                //Coluna b
+                tableau[i][n + m] = b[i];
+            }
+
+            //Função objetivo
             for(int j = 0; j < n; j++){
-                tableau[i][j] = a[i][j];
+                tableau[m][j] = -z[j]; //Tranformando em negativo para PADRONIZAR
             }
-            //Variáveis de folga
-                for(int j = 0; j < m; j++){
-                tableau[i][n + j] = f[i][j];
+
+            //Folgas da função objetivo = 0
+            for(int j = 0; j < m; j++){
+                tableau[m][n + j] = 0;
             }
-            //Coluna b
-            tableau[i][n + m] = b[i];
-        }
 
-        //Função objetivo
-        for(int j = 0; j < n; j++){
-            tableau[m][j] = -z[j]; //Tranformando em negativo para PADRONIZAR
-        }
-
-        //Folgas da função objetivo = 0
-        for(int j = 0; j < m; j++){
-            tableau[m][n + j] = 0;
-        }
-
-        //b da função objetivo = 0
-        tableau[m][n + m] = 0;
+            //b da função objetivo = 0
+            tableau[m][n + m] = 0;
         //}
 
         //Mostando a Primeira Tabela 
@@ -107,17 +103,13 @@ public class Simplex {
     public static void resolverTableu(double[][] tableau, String[] var, int n, int m){
 
         while(true){
-
             int colunaPivo = 0;
             double menor = tableau[m][0];
 
-            // =========================
-            // ESCOLHER COLUNA PIVÔ
-            // =========================
+            //Coluna do Menor Pivo
             for(int j = 1; j < n + m; j++){
-
                 if(tableau[m][j] < menor){
-                    menor = tableau[m][j];
+                    menor = tableau[m][j]; //Pegando o menor valor da linha de Z
                     colunaPivo = j;
                 }
             }
@@ -128,21 +120,15 @@ public class Simplex {
                 break;
             }
 
-            // =========================
-            // ESCOLHER LINHA PIVÔ
-            // =========================
+            //Linha do Menor Pivo
             int linhaPivo = -1;
             double menorRazao = Double.MAX_VALUE;
 
             for(int i = 0; i < m; i++){
-
                 double elemento = tableau[i][colunaPivo];
-
                 //evita divisão por zero ou negativos
                 if(elemento > 0){
-
-                    double razao = tableau[i][n + m] / elemento;
-
+                    double razao = tableau[i][n + m] / elemento; //razao = b / pelo valor na coluna do pivo
                     if(razao < menorRazao){
                         menorRazao = razao;
                         linhaPivo = i;
@@ -156,35 +142,25 @@ public class Simplex {
                 return;
             }
 
-            // =========================
-            // ATUALIZAR VARIÁVEL BÁSICA
-            // =========================
+            //Muda a variável básica
             if(colunaPivo < n){
                 var[linhaPivo] = "x" + (colunaPivo + 1);
             }else{
                 var[linhaPivo] = "f" + (colunaPivo - n + 1);
             }
 
-            // =========================
-            // NORMALIZAR LINHA PIVÔ
-            // =========================
+            //Normalizando a linha do pivo
             double pivo = tableau[linhaPivo][colunaPivo];
 
             for(int j = 0; j < n + m + 1; j++){
-                tableau[linhaPivo][j] /= pivo;
+                tableau[linhaPivo][j] /= pivo; 
             }
 
-            // =========================
-            // ZERAR COLUNA PIVÔ
-            // =========================
+            //Zerando coluna do pivo
             for(int i = 0; i < m + 1; i++){
-
                 if(i != linhaPivo){
-
                     double fator = tableau[i][colunaPivo];
-
                     for(int j = 0; j < n + m + 1; j++){
-
                         tableau[i][j] -= fator * tableau[linhaPivo][j];
                     }
                 }
@@ -192,16 +168,12 @@ public class Simplex {
         }
         System.out.println();
 
-        // =========================
-        // TABELA FINAL
-        // =========================
-        System.out.println("Tabela Inicial: ");
+        //Tabela Final
+        System.out.println("Tabela Final: ");
         imprimirTableu(tableau, var, n, m);
         System.out.println();
 
-        // =========================
-        // RESULTADO FINAL
-        // =========================
+        //Solução ótima
         System.out.println("\nSolução ótima encontrada:");
         for(int i = 0; i < m; i++){
             System.out.println(var[i] + " = " + tableau[i][n + m]);
@@ -212,12 +184,12 @@ public class Simplex {
     public static void imprimirTableu(double[][] tableau, String[] var, int n, int m){
         System.out.printf("| %-18s ", "Variaveis Basicas");
 
-        //Variáveis
+        //Variaveis
         for(int i = 0; i < n; i++){
             System.out.printf("| %-8s ", "x"+(i+1));
         }
 
-        //Variáveis de folga
+        //Variaveis de folga
         for(int i = 0; i < m; i++){
             System.out.printf("| %-8s ", "f"+(i+1));
         }
